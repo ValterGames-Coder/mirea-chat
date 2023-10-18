@@ -1,0 +1,84 @@
+{% extends 'base.html' %} {% block title %} Онлайн чат {% endblock %} {% block
+body %}
+<div class="container">
+  <div class="messages-bg">
+    <div class="messages"></div>
+  </div>
+  <div class="input-bottom">
+    <div class="input-box">
+      <input
+        type="text"
+        id="message-input"
+        placeholder="Введите сообщение"
+        required
+      />
+      <button id="send">Отправить</button>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  $(document).ready(function () {
+    var socket = io.connect("http://localhost:5000");
+    var current_edit_message = null
+    socket.on("connect", function () {
+      socket.send("User connected!");
+    });
+
+    socket.on("delete", function(data) {
+        $(".message" + data['message_id']).remove();
+    });
+
+    socket.on("message", function (data) {
+        if (data['is_edit'] === true) {
+            if(data['user_id'] == "{{ user['id'] }}") {
+                $(".message" + data['message_id'])
+                .html("<p>" + data['text'] + " (edit)</p><p id='date'>" + data['date'] + "</p><div class='buttons'><button id='edit'>Редактировать</button><button id='delete'>Удалить</button></div>")
+                $(".message" + data['message_id']).children('.buttons').children('#edit').click(function() {
+                    current_edit_message = data['message_id']
+                    $("#message-input").val(data['text']);
+                });
+                $(".message" + data['message_id']).children('.buttons').children('#delete').click(function() {
+                    socket.emit("delete", {'message_id': data['message_id']})
+                });
+            }
+            else {
+                $(".message" + data['message_id'])
+                .html("<img src='" + data['icon'] + "'><div id='message'><p><b>" + data['username'] + ":</b> " + data['text'] + " (edit)</p><p id='date'>" + data['date'] + "</p></div>")
+            }
+        }
+        else{
+            if(data['user_id'] == "{{ user['id'] }}") {
+                var $messageDiv = $("<div/>")
+                    .addClass("message" + data['message_id'])
+                    .attr("id", "your_message")
+                    .html("<p>" + data['text'] + "</p><p id='date'>" + data['date'] + "</p><div class='buttons'><button id='edit'>Редактировать</button><button id='delete'>Удалить</button></div>")
+                $(".messages").append($messageDiv);
+                $(".message" + data['message_id']).children('.buttons').children('#edit').click(function(){
+                    current_edit_message = data['message_id']
+                    $("#message-input").val(data['text']);
+                });
+                $(".message" + data['message_id']).children('.buttons').children('#delete').click(function() {
+                    socket.emit("delete", {'message_id': data['message_id']})
+                });
+            }
+            else{
+                var $messageDiv = $("<div/>")
+                    .addClass("message" + data['message_id'])
+                    .attr("id", "message-block")
+                    .html("<img src='" + data['icon'] + "'><div id='message'><p><b>" + data['username'] + ":</b> " + data['text'] + "</p><p id='date'>" + data['date'] + "</p></div>")
+                $(".messages").append($messageDiv);
+            }
+        }
+        $(".messages").scrollTop($(".messages").get(0).scrollHeight);
+    });
+
+    $("#send").on("click", function () {
+      if ($("#message-input").val() != ''){
+        socket.emit("message", {"text": $("#message-input").val(), "user_id": "{{ user["id"] }}", "username": "{{ user["username"] }}", "message_id": current_edit_message, 'icon': "{{ user["icon"] }}"})
+        current_edit_message = null
+        $("#message-input").val("");
+      }
+    });
+  });
+</script>
+{% endblock %}

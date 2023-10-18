@@ -1,0 +1,10 @@
+{% extends 'base.html' %} {% block title %} Вход {% endblock %} {% block body %}
+<form method="post">
+  <div class="login_panel">
+    <input type="text" id="username" name="username" required />
+    <input type="password" id="password" name="password" required />
+    <input type="submit" id="login-submit" value="Войти" />
+    <a href="/">Назад</a>
+  </div>
+</form>
+{% endblock %}
