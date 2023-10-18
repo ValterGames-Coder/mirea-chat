@@ -152,7 +152,7 @@ def signup():
         password = request.form['password']
         icon = request.files['icon']
 
-        if icon is not None:
+        if icon.filename is not '':
             params = {
                 'key': 'e171bf3bf065459ac1f72c6f46dac86a',
             }
