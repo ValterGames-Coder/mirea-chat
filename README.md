@@ -10,3 +10,5 @@ pip install -r requirements.txt
 python app.py
 ```
 Запуститься на http://localhost:5000
+
+Для тестов надо заходить с разных браузеров или под инкогнито
